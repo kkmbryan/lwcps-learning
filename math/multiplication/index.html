@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff4fa">
+  <meta name="description" content="跟住 Melody 的節拍，輕鬆溫習二年級 2 至 9 的乘數表。">
+  <title>乘數 Melody｜節拍挑戰</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #412d46;
+      --muted: #796a80;
+      --pink: #e84f91;
+      --pink-dark: #b92b70;
+      --line: #f0dce8;
+      --surface: #fff;
+      --background: #fff8fc;
+      font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; color: var(--ink); background: radial-gradient(ellipse at 12% 4%, #ffe1ef 0, transparent 30rem), var(--background); }
+    button, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid #8e51c7; outline-offset: 3px; }
+    .wrap { width: min(940px, calc(100% - 32px)); margin-inline: auto; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 20px; }
+    .brand, .back { color: var(--muted); font-weight: 750; text-decoration: none; }
+    .brand { display: flex; align-items: center; gap: 9px; color: var(--ink); }
+    .brand-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 14px; background: #ffe2ef; font-size: 1.25rem; }
+    .back:hover { color: var(--pink-dark); }
+    main { padding-block: 14px 54px; }
+    .hero { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 18px; padding: clamp(24px, 5vw, 46px); border: 1px solid #f6d5e5; border-radius: 30px; background: linear-gradient(125deg, #fff 5%, #fff0f7 100%); box-shadow: 0 16px 38px #a4386e12; }
+    .eyebrow { margin: 0 0 9px; color: var(--pink-dark); font-size: .82rem; font-weight: 850; letter-spacing: .1em; }
+    h1 { margin: 0; font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.08; letter-spacing: -.045em; }
+    .intro { max-width: 570px; margin: 14px 0 0; color: var(--muted); font-size: 1.08rem; line-height: 1.7; }
+    .music-star { display: grid; width: clamp(88px, 17vw, 142px); aspect-ratio: 1; place-items: center; border: 8px solid #fff; border-radius: 42% 58% 50% 50%; background: linear-gradient(145deg, #ffd2e6, #ffadd2); box-shadow: 0 10px 24px #d959971f; font-size: clamp(3rem, 9vw, 5.2rem); transform: rotate(5deg); }
+    .panel { margin-top: 22px; padding: clamp(20px, 4vw, 34px); border: 1px solid var(--line); border-radius: 26px; background: var(--surface); box-shadow: 0 12px 32px #522d4510; }
+    .setup { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; }
+    .table-field { display: grid; gap: 7px; color: var(--muted); font-size: .92rem; font-weight: 750; }
+    select { min-width: 190px; min-height: 48px; padding: 0 38px 0 14px; border: 1px solid var(--line); border-radius: 14px; color: var(--ink); background: #fffafd; font-weight: 800; }
+    .primary, .secondary, .answer, .next { min-height: 50px; border: 0; border-radius: 15px; font-weight: 850; transition: transform .16s ease, box-shadow .16s ease, background .16s ease; }
+    .primary, .next { padding: 0 22px; color: #fff; background: var(--pink); box-shadow: 0 7px 16px #e84f9138; }
+    .primary:hover, .next:hover { background: var(--pink-dark); box-shadow: 0 9px 20px #e84f9144; transform: translateY(-2px); }
+    .secondary { padding: 0 18px; border: 1px solid var(--line); color: var(--pink-dark); background: #fff7fb; }
+    .secondary:hover { background: #ffeaf4; }
+    .hint { margin: 18px 0 0; color: var(--muted); font-size: .94rem; line-height: 1.6; }
+    .game { text-align: center; }
+    .game-top { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 12px; color: var(--muted); font-weight: 800; }
+    .score { padding: 8px 13px; border-radius: 999px; color: #a23d77; background: #fff0f7; }
+    .progress { height: 12px; overflow: hidden; border-radius: 999px; background: #faeaf2; }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #ff9ac4, #e84f91); transition: width .3s ease; }
+    .question { margin: clamp(24px, 5vw, 42px) 0 8px; font-size: clamp(2.6rem, 10vw, 5rem); font-weight: 900; letter-spacing: .02em; }
+    .question-hint { margin: 0; color: var(--muted); }
+    .answers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 27px; }
+    .answer { min-height: 76px; border: 2px solid #f5dbe8; color: var(--ink); background: #fffafd; font-size: clamp(1.45rem, 5vw, 2rem); }
+    .answer:hover:not(:disabled) { border-color: #ed8ab7; background: #fff1f7; transform: translateY(-2px); }
+    .answer:disabled { cursor: default; opacity: .8; }
+    .answer.correct { border-color: #73c89e; color: #176d47; background: #e8fff2; opacity: 1; }
+    .answer.wrong { border-color: #e58b98; color: #9c3448; background: #fff0f2; opacity: 1; }
+    .feedback { min-height: 32px; margin: 18px 0 0; color: var(--muted); font-size: 1.08rem; font-weight: 800; }
+    .feedback.good { color: #18764d; }
+    .feedback.try-again { color: #a13c50; }
+    .next { margin-top: 4px; }
+    .result-emoji { margin: 0 0 8px; font-size: 3.5rem; }
+    .result-title { margin: 0; font-size: clamp(1.8rem, 6vw, 2.7rem); }
+    .result-copy { margin: 12px 0 22px; color: var(--muted); font-size: 1.1rem; line-height: 1.6; }
+    .result-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+    .review { margin-top: 18px; }
+    .review h2 { margin: 0 0 14px; font-size: 1.25rem; }
+    .table-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; }
+    .fact { padding: 12px 6px; border: 1px solid #f5dce9; border-radius: 13px; background: #fff8fc; text-align: center; font-size: clamp(.85rem, 2vw, 1rem); font-weight: 800; }
+    .hidden { display: none !important; }
+    footer { padding: 0 4px; color: var(--muted); font-size: .9rem; line-height: 1.6; text-align: center; }
+    @media (max-width: 600px) {
+      .hero { grid-template-columns: 1fr auto; gap: 10px; padding: 23px 20px; border-radius: 23px; }
+      .intro { font-size: 1rem; }
+      .music-star { width: 78px; border-width: 5px; }
+      .answers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .answer { min-height: 68px; }
+      .table-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .game-top { font-size: .9rem; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <header class="wrap topbar">
+    <a class="brand" href="../../"><span class="brand-icon" aria-hidden="true">🎓</span><span>LWCPS Learning</span></a>
+    <a class="back" href="../../">← 返回學習天地</a>
+  </header>
+  <main class="wrap">
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="eyebrow">🎶 二年級數學・音符派對</p>
+        <h1 id="title">乘數 Melody</h1>
+        <p class="intro">跟住節拍玩乘數表！慢慢諗都得，答啱就儲星星，一齊完成 10 題挑戰。</p>
+      </div>
+      <div class="music-star" aria-hidden="true">🎵</div>
+    </section>
+
+    <section id="setup" class="panel" aria-labelledby="setup-title">
+      <h2 id="setup-title">準備好未？</h2>
+      <div class="setup">
+        <label class="table-field" for="table-select">揀一個乘數表
+          <select id="table-select">
+            <option value="2">2 的乘數表</option>
+            <option value="3">3 的乘數表</option>
+            <option value="4">4 的乘數表</option>
+            <option value="5">5 的乘數表</option>
+            <option value="6">6 的乘數表</option>
+            <option value="7">7 的乘數表</option>
+            <option value="8">8 的乘數表</option>
+            <option value="9">9 的乘數表</option>
+          </select>
+        </label>
+        <button id="start-button" class="primary" type="button">開始 10 題挑戰 ✨</button>
+        <button id="review-button" class="secondary" type="button" aria-expanded="false" aria-controls="review">先溫習乘數表</button>
+      </div>
+      <p class="hint">每題有 4 個答案，答啱會儲 1 分；唔使趕時間，最緊要享受學習！</p>
+      <div id="review" class="review hidden">
+        <h2 id="review-title">2 的乘數表</h2>
+        <div id="table-grid" class="table-grid"></div>
+      </div>
+    </section>
+
+    <section id="game" class="panel game hidden" aria-labelledby="question" aria-live="polite">
+      <div class="game-top">
+        <span id="question-count">第 1 / 10 題</span>
+        <span id="score" class="score">⭐ 0 分　🔥 0 連勝</span>
+      </div>
+      <div class="progress" role="progressbar" aria-label="挑戰進度" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+      <h2 id="question" class="question"></h2>
+      <p class="question-hint">揀出正確答案！</p>
+      <div id="answers" class="answers"></div>
+      <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+      <button id="next-button" class="next hidden" type="button">下一題 →</button>
+    </section>
+
+    <section id="result" class="panel game hidden" aria-live="polite"></section>
+    <footer>每一次練習都值得一個掌聲 👏　｜　慢慢來，記住就係你嘅本領！</footer>
+  </main>
+  <script>
+    const setup = document.querySelector("#setup");
+    const game = document.querySelector("#game");
+    const result = document.querySelector("#result");
+    const tableSelect = document.querySelector("#table-select");
+    const review = document.querySelector("#review");
+    const reviewButton = document.querySelector("#review-button");
+    const questionCount = document.querySelector("#question-count");
+    const scoreDisplay = document.querySelector("#score");
+    const progress = document.querySelector(".progress");
+    const progressFill = document.querySelector("#progress-fill");
+    const question = document.querySelector("#question");
+    const answers = document.querySelector("#answers");
+    const feedback = document.querySelector("#feedback");
+    const nextButton = document.querySelector("#next-button");
+    const totalQuestions = 10;
+    let table = 2;
+    let questionNumber = 0;
+    let score = 0;
+    let streak = 0;
+    let currentAnswer = 0;
+    let answered = false;
+
+    function renderTable() {
+      const selectedTable = Number(tableSelect.value);
+      document.querySelector("#review-title").textContent = `${selectedTable} 的乘數表`;
+      document.querySelector("#table-grid").replaceChildren(...Array.from({ length: 10 }, (_, index) => {
+        const multiplier = index + 1;
+        const card = document.createElement("div");
+        card.className = "fact";
+        card.textContent = `${selectedTable} × ${multiplier} = ${selectedTable * multiplier}`;
+        return card;
+      }));
+    }
+
+    function shuffled(values) {
+      for (let index = values.length - 1; index > 0; index -= 1) {
+        const other = Math.floor(Math.random() * (index + 1));
+        [values[index], values[other]] = [values[other], values[index]];
+      }
+      return values;
+    }
+
+    function makeChoices(answer) {
+      const choices = new Set([answer]);
+      while (choices.size < 4) {
+        const offset = Math.floor(Math.random() * 15) + 1;
+        const choice = Math.random() < 0.5 ? answer + offset : answer - offset;
+        if (choice > 0 && choice <= 90) choices.add(choice);
+      }
+      return shuffled([...choices]);
+    }
+
+    function updateScore() {
+      scoreDisplay.textContent = `⭐ ${score} 分　🔥 ${streak} 連勝`;
+    }
+
+    function showQuestion() {
+      questionNumber += 1;
+      answered = false;
+      const multiplier = Math.floor(Math.random() * 10) + 1;
+      currentAnswer = table * multiplier;
+      questionCount.textContent = `第 ${questionNumber} / ${totalQuestions} 題`;
+      question.textContent = `${table} × ${multiplier} = ?`;
+      progress.setAttribute("aria-valuenow", questionNumber - 1);
+      progressFill.style.width = `${((questionNumber - 1) / totalQuestions) * 100}%`;
+      feedback.textContent = "";
+      feedback.className = "feedback";
+      nextButton.classList.add("hidden");
+      answers.replaceChildren(...makeChoices(currentAnswer).map((value, index) => {
+        const button = document.createElement("button");
+        button.className = "answer";
+        button.type = "button";
+        button.textContent = value;
+        button.setAttribute("aria-label", `答案 ${index + 1}：${value}`);
+        button.addEventListener("click", () => checkAnswer(value));
+        return button;
+      }));
+    }
+
+    function checkAnswer(value) {
+      if (answered) return;
+      answered = true;
+      const correct = value === currentAnswer;
+      if (correct) {
+        score += 1;
+        streak += 1;
+        feedback.textContent = streak > 1 ? `答啱！好犀利，已經連勝 ${streak} 題！🎉` : "答啱啦！好叻呀！🎉";
+        feedback.className = "feedback good";
+      } else {
+        streak = 0;
+        feedback.textContent = `差少少！正確答案係 ${currentAnswer}，記住下次再試！💪`;
+        feedback.className = "feedback try-again";
+      }
+      updateScore();
+      progress.setAttribute("aria-valuenow", questionNumber);
+      progressFill.style.width = `${(questionNumber / totalQuestions) * 100}%`;
+      answers.querySelectorAll("button").forEach((button) => {
+        const buttonValue = Number(button.textContent);
+        button.disabled = true;
+        if (buttonValue === currentAnswer) button.classList.add("correct");
+        else if (buttonValue === value) button.classList.add("wrong");
+      });
+      nextButton.textContent = questionNumber === totalQuestions ? "睇成績 ✨" : "下一題 →";
+      nextButton.classList.remove("hidden");
+      nextButton.focus();
+    }
+
+    function finishGame() {
+      game.classList.add("hidden");
+      result.classList.remove("hidden");
+      const stars = score >= 9 ? "🌟🌟🌟" : score >= 6 ? "🌟🌟" : "🌟";
+      const cheer = score === totalQuestions ? "全對！你係乘數表小天才！" : score >= 7 ? "做得好好！繼續保持！" : "練習令你愈來愈叻，再玩一次啦！";
+      result.innerHTML = `
+        <p class="result-emoji" aria-hidden="true">${stars}</p>
+        <h2 class="result-title">挑戰完成！</h2>
+        <p class="result-copy">${cheer}<br>今次答啱 <strong>${score} / ${totalQuestions}</strong> 題，儲到 ${score} 分！</p>
+        <div class="result-actions">
+          <button id="play-again" class="primary" type="button">再玩一次 🎶</button>
+          <button id="choose-table" class="secondary" type="button">揀另一個乘數表</button>
+        </div>`;
+      document.querySelector("#play-again").addEventListener("click", startGame);
+      document.querySelector("#choose-table").addEventListener("click", () => {
+        result.classList.add("hidden");
+        setup.classList.remove("hidden");
+        document.querySelector("#start-button").focus();
+      });
+      document.querySelector("#play-again").focus();
+    }
+
+    function startGame() {
+      table = Number(tableSelect.value);
+      questionNumber = 0;
+      score = 0;
+      streak = 0;
+      updateScore();
+      setup.classList.add("hidden");
+      result.classList.add("hidden");
+      game.classList.remove("hidden");
+      showQuestion();
+    }
+
+    document.querySelector("#start-button").addEventListener("click", startGame);
+    document.querySelector("#next-button").addEventListener("click", () => {
+      if (questionNumber === totalQuestions) finishGame();
+      else showQuestion();
+    });
+    document.querySelector("#review-button").addEventListener("click", () => {
+      const isOpen = !review.classList.contains("hidden");
+      review.classList.toggle("hidden", isOpen);
+      reviewButton.setAttribute("aria-expanded", String(!isOpen));
+      reviewButton.textContent = isOpen ? "先溫習乘數表" : "收起乘數表";
+      if (!isOpen) renderTable();
+    });
+    tableSelect.addEventListener("change", () => {
+      if (!review.classList.contains("hidden")) renderTable();
+    });
+  </script>
+</body>
+</html>
