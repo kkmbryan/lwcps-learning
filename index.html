@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7ff">
+  <meta name="description" content="A friendly learning hub for LWCPS students, with interactive revision games and study activities.">
+  <title>LWCPS Learning | Learn, practise, shine</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202447;
+      --muted: #656b89;
+      --purple: #5b54d6;
+      --purple-dark: #4039b3;
+      --line: #e7e8f4;
+      --surface: #fff;
+      --background: #f7f8ff;
+      font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--background); }
+    a { color: inherit; }
+    .wrap { width: min(1120px, calc(100% - 40px)); margin-inline: auto; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-block: 22px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; letter-spacing: -.03em; }
+    .brand-mark { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 14px; background: #e8e7ff; font-size: 22px; }
+    .nav-link { color: var(--muted); font-size: .95rem; font-weight: 700; text-decoration: none; }
+    .nav-link:hover { color: var(--purple); }
+    .hero { position: relative; overflow: hidden; display: grid; grid-template-columns: 1.2fr .8fr; align-items: center; gap: 40px; margin-top: 20px; padding: clamp(32px, 6vw, 72px); border-radius: 32px; color: #fff; background: linear-gradient(125deg, #4540b8 0%, #6961e8 58%, #8975ee 100%); box-shadow: 0 22px 55px #4e48b729; }
+    .hero::after { position: absolute; right: -48px; bottom: -180px; width: 420px; height: 420px; border: 1px solid #ffffff24; border-radius: 50%; content: ""; box-shadow: 0 0 0 42px #ffffff0d, 0 0 0 84px #ffffff0a; }
+    .hero-copy, .hero-art { position: relative; z-index: 1; }
+    .eyebrow { margin: 0 0 14px; color: #e4e1ff; font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { max-width: 620px; margin: 0; font-size: clamp(2.6rem, 6vw, 4.7rem); line-height: 1.02; letter-spacing: -.055em; }
+    .hero p:not(.eyebrow) { max-width: 520px; margin: 20px 0 28px; color: #f0efff; font-size: 1.1rem; line-height: 1.65; }
+    .button { display: inline-flex; min-height: 50px; align-items: center; justify-content: center; gap: 9px; padding: 0 20px; border-radius: 15px; color: var(--purple-dark); background: #fff; font-weight: 800; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease; }
+    .button:hover { transform: translateY(-2px); box-shadow: 0 9px 22px #24208040; }
+    .hero-art { display: grid; min-height: 240px; place-items: center; }
+    .book { display: grid; width: min(230px, 70vw); aspect-ratio: 1; place-items: center; border: 1px solid #ffffff70; border-radius: 38% 62% 56% 44% / 45% 43% 57% 55%; background: linear-gradient(145deg, #ffffff35, #ffffff12); font-size: clamp(6rem, 15vw, 9.5rem); transform: rotate(4deg); }
+    .float { position: absolute; display: grid; width: 58px; height: 58px; place-items: center; border: 1px solid #ffffff80; border-radius: 18px; background: #ffffff28; font-size: 1.8rem; backdrop-filter: blur(8px); }
+    .float.one { top: 8%; left: 8%; transform: rotate(-10deg); }
+    .float.two { right: 6%; bottom: 8%; transform: rotate(9deg); }
+    section { padding-block: 66px 10px; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+    .section-heading h2 { margin: 0; font-size: clamp(1.7rem, 4vw, 2.35rem); letter-spacing: -.04em; }
+    .section-heading p { max-width: 440px; margin: 0; color: var(--muted); line-height: 1.6; }
+    .subjects { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+    .subject { min-height: 184px; padding: 22px; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); box-shadow: 0 8px 24px #22244a08; }
+    .subject-icon { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 15px; background: var(--tint); font-size: 1.55rem; }
+    .subject h3 { margin: 17px 0 6px; font-size: 1.08rem; }
+    .subject p { margin: 0; color: var(--muted); font-size: .93rem; line-height: 1.5; }
+    .note { display: flex; align-items: flex-start; gap: 14px; margin-top: 22px; padding: 18px 20px; border: 1px solid #e6e5ff; border-radius: 18px; background: #f0efff; color: #49458a; line-height: 1.55; }
+    .note span { font-size: 1.25rem; }
+    footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 72px; padding-block: 22px 30px; border-top: 1px solid var(--line); color: var(--muted); font-size: .88rem; }
+    @media (max-width: 800px) { .hero { grid-template-columns: 1fr; gap: 12px; } .hero-art { min-height: 190px; } .book { width: 185px; } .subjects { grid-template-columns: repeat(2, minmax(0, 1fr)); } .section-heading { align-items: flex-start; flex-direction: column; } }
+    @media (max-width: 480px) { .wrap { width: min(100% - 28px, 1120px); } .topbar { padding-block: 16px; } .hero { margin-top: 12px; padding: 30px 24px; border-radius: 25px; } .hero-art { min-height: 150px; } .book { width: 145px; } .float { width: 46px; height: 46px; } .subjects { grid-template-columns: 1fr; } .subject { min-height: 158px; } footer { flex-direction: column; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <header class="wrap topbar">
+    <a class="brand" href="./" aria-label="LWCPS Learning home"><span class="brand-mark" aria-hidden="true">🎓</span><span>LWCPS Learning</span></a>
+    <a class="nav-link" href="#subjects">Explore subjects <span aria-hidden="true">↓</span></a>
+  </header>
+  <main class="wrap">
+    <section class="hero" aria-labelledby="welcome-title">
+      <div class="hero-copy">
+        <p class="eyebrow">A little practice goes a long way</p>
+        <h1 id="welcome-title">Learn, practise, shine.</h1>
+        <p>A cheerful home for LWCPS learning activities. Explore a subject, build confidence, and celebrate every step forward.</p>
+        <a class="button" href="#subjects">Find your next activity <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <span class="float one">✨</span><span class="book">📚</span><span class="float two">⭐</span>
+      </div>
+    </section>
+    <section id="subjects" aria-labelledby="subjects-title">
+      <div class="section-heading">
+        <h2 id="subjects-title">Choose a subject</h2>
+        <p>Pick a subject to get started. New revision games and activities will appear here as they are added.</p>
+      </div>
+      <div class="subjects">
+        <article class="subject" style="--tint:#fff0f0"><span class="subject-icon" aria-hidden="true">📖</span><h3>English</h3><p>Words, reading, and language practice</p></article>
+        <article class="subject" style="--tint:#f0efff"><span class="subject-icon" aria-hidden="true">🀄</span><h3>中文</h3><p>閱讀、詞語和語文練習</p></article>
+        <article class="subject" style="--tint:#fff6e6"><span class="subject-icon" aria-hidden="true">🔢</span><h3>Mathematics</h3><p>Numbers, patterns, and problem-solving</p></article>
+        <article class="subject" style="--tint:#e9f8f2"><span class="subject-icon" aria-hidden="true">🌏</span><h3>General Studies</h3><p>Explore the world around you</p></article>
+      </div>
+      <div class="note"><span aria-hidden="true">💡</span><span><strong>Ready to learn?</strong> This hub is just getting started. Check back soon for interactive practice activities.</span></div>
+    </section>
+  </main>
+  <footer class="wrap"><span>Made for curious learners at LWCPS</span><span>Keep practising. Keep growing. 🌱</span></footer>
+</body>
+</html>
