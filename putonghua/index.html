@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff9ef">
+  <title>普通話口試小勇士</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #263345;
+      --muted: #718096;
+      --paper: #fffdf9;
+      --cream: #fff8eb;
+      --line: #eee8dd;
+      --orange: #f47e50;
+      --orange-dark: #d65f34;
+      --peach: #fff0e8;
+      --blue: #eaf3ff;
+      --blue-dark: #4b78b9;
+      --green: #e8f6ed;
+      --green-dark: #317b50;
+      --yellow: #fff5cf;
+      --shadow: 0 14px 40px rgb(73 56 34 / 8%);
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 9% 7%, #ffebd4 0, transparent 26rem),
+        radial-gradient(ellipse at 94% 30%, #e4f2ff 0, transparent 24rem),
+        var(--cream);
+    }
+
+    button { font: inherit; }
+    button:focus-visible { outline: 3px solid #78a5e5; outline-offset: 3px; }
+
+    .page { width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 52px; }
+
+    .topbar, .brand, .score, .section-heading, .word-tools, .dialogue-actions, .quiz-top {
+      display: flex;
+      align-items: center;
+    }
+
+    .topbar { justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+    .brand { gap: 11px; color: var(--muted); font-size: 14px; font-weight: 750; text-decoration: none; }
+    .brand:hover { color: var(--orange-dark); }
+    .brand-mark {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      place-items: center;
+      border: 1px solid #f3dec7;
+      border-radius: 14px;
+      background: white;
+      font-size: 21px;
+      box-shadow: 0 5px 16px rgb(73 56 34 / 6%);
+    }
+    .score {
+      gap: 7px;
+      padding: 9px 14px;
+      border: 1px solid #f3dfae;
+      border-radius: 999px;
+      background: #fff7db;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .score-star { color: #e9a629; font-size: 18px; }
+
+    .hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 205px;
+      gap: 24px;
+      overflow: hidden;
+      padding: clamp(24px, 5vw, 48px);
+      border: 1px solid #f5e5cf;
+      border-radius: 28px;
+      background: linear-gradient(115deg, #fff 0%, #fff8ed 72%, #ffefdc 100%);
+      box-shadow: var(--shadow);
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin: 0 0 12px;
+      color: var(--orange-dark);
+      font-size: 13px;
+      font-weight: 850;
+      letter-spacing: .04em;
+    }
+    h1 { margin: 0; font-size: clamp(30px, 5vw, 48px); line-height: 1.16; letter-spacing: -.035em; }
+    .hero-copy { max-width: 540px; margin: 14px 0 22px; color: var(--muted); line-height: 1.75; }
+    .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag { padding: 7px 11px; border: 1px solid #f0e7dc; border-radius: 999px; background: #fff; font-size: 12px; font-weight: 750; }
+    .mascot {
+      display: grid;
+      align-self: center;
+      justify-self: center;
+      width: 158px;
+      aspect-ratio: 1;
+      place-items: center;
+      border: 1px solid #ffe0bd;
+      border-radius: 46% 54% 51% 49% / 54% 46% 54% 46%;
+      background: linear-gradient(145deg, #fff2d6, #ffd8b9);
+      font-size: 76px;
+      transform: rotate(4deg);
+    }
+
+    .section-heading { justify-content: space-between; gap: 16px; margin: 32px 2px 14px; }
+    .section-heading h2 { margin: 0; font-size: 21px; letter-spacing: -.02em; }
+    .section-heading p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .subject-label { padding: 7px 12px; border-radius: 999px; background: #fff; color: var(--orange-dark); font-size: 12px; font-weight: 850; }
+
+    .missions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .mission {
+      position: relative;
+      min-height: 146px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--paper);
+      box-shadow: 0 6px 20px rgb(73 56 34 / 4%);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .mission:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgb(73 56 34 / 9%); }
+    .mission-icon { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 14px; font-size: 21px; }
+    .mission:nth-child(1) .mission-icon { background: var(--peach); }
+    .mission:nth-child(2) .mission-icon { background: var(--blue); }
+    .mission:nth-child(3) .mission-icon { background: var(--green); }
+    .mission h3 { margin: 13px 0 4px; font-size: 16px; }
+    .mission p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .mission-count { position: absolute; top: 20px; right: 18px; color: #9aa4b1; font-size: 11px; font-weight: 800; }
+
+    .practice-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 16px; align-items: start; }
+    .panel { border: 1px solid var(--line); border-radius: 22px; background: var(--paper); box-shadow: 0 8px 24px rgb(73 56 34 / 5%); }
+    .panel-head { display: flex; justify-content: space-between; gap: 12px; padding: 20px 21px 14px; }
+    .panel-head h2 { margin: 0; font-size: 17px; }
+    .panel-head p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+    .small-count { color: #a0a9b5; font-size: 12px; font-weight: 800; white-space: nowrap; }
+
+    .word-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 0 16px 16px; }
+    .word-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-width: 0;
+      padding: 10px 11px;
+      border: 1px solid #f0ece5;
+      border-radius: 14px;
+      background: #fff;
+      text-align: left;
+      cursor: pointer;
+    }
+    .word-card:hover, .word-card[aria-pressed="true"] { border-color: #f6b08d; background: #fff8f4; }
+    .word-main { min-width: 0; }
+    .word-hanzi { display: block; font-size: 17px; font-weight: 850; line-height: 1.25; }
+    .word-pinyin { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+    .speaker { flex: 0 0 auto; color: var(--orange-dark); font-size: 17px; }
+    .word-tools { justify-content: space-between; gap: 12px; padding: 13px 20px 17px; border-top: 1px solid #f1ede7; }
+    .word-tools span { color: var(--muted); font-size: 12px; }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 38px;
+      padding: 8px 13px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--orange);
+      color: white;
+      font-size: 12px;
+      font-weight: 850;
+      cursor: pointer;
+      transition: background .15s ease, transform .15s ease;
+    }
+    .button:hover { background: var(--orange-dark); transform: translateY(-1px); }
+    .button.secondary { border: 1px solid #e8e4de; background: #fff; color: var(--ink); }
+    .button.secondary:hover { background: #faf8f4; }
+
+    .quiz-body { padding: 1px 21px 20px; }
+    .quiz-top { justify-content: space-between; margin-bottom: 15px; }
+    .quiz-label { color: var(--blue-dark); font-size: 11px; font-weight: 850; }
+    .quiz-prompt { min-height: 98px; display: grid; place-items: center; padding: 16px; border: 1px dashed #cbdcf1; border-radius: 17px; background: #f6faff; text-align: center; }
+    .quiz-prompt p { margin: 0; }
+    .quiz-meaning { color: var(--muted); font-size: 14px; }
+    .quiz-pinyin { margin-top: 6px !important; color: var(--ink); font-size: 24px; font-weight: 850; }
+    .answers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+    .answer {
+      min-height: 43px;
+      padding: 8px;
+      border: 1px solid #e8edf3;
+      border-radius: 13px;
+      background: white;
+      color: var(--ink);
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .answer:hover:not(:disabled) { border-color: #9bb9e1; background: #f7faff; }
+    .answer.correct { border-color: #85c89b; background: var(--green); color: var(--green-dark); }
+    .answer.wrong { border-color: #efa18e; background: #fff0eb; color: #a9462a; }
+    .answer:disabled { cursor: default; }
+    .quiz-feedback { min-height: 22px; margin: 9px 2px 0; color: var(--muted); font-size: 12px; }
+    .quiz-next { display: flex; justify-content: flex-end; margin-top: 8px; }
+
+    .dialogue-panel { overflow: hidden; }
+    .dialogue-content { padding: 0 21px 20px; }
+    .question-card { padding: 16px; border-radius: 17px; background: #f4f9f4; }
+    .question-label { margin: 0 0 7px; color: var(--green-dark); font-size: 11px; font-weight: 850; }
+    .question-text { margin: 0; font-size: 20px; font-weight: 850; line-height: 1.5; }
+    .sentence-start { margin: 15px 0 8px; color: var(--muted); font-size: 12px; }
+    .answer-box { min-height: 64px; padding: 12px 13px; border: 1px solid #ece9e1; border-radius: 14px; background: #fff; line-height: 1.7; }
+    .answer-box.placeholder { color: #9aa3ae; font-size: 13px; }
+    .dialogue-actions { flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 13px; }
+    .dialogue-tip { margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+
+    .footer-note { margin: 22px 4px 0; color: #8d96a3; font-size: 11px; line-height: 1.6; text-align: center; }
+    .toast { position: fixed; right: 18px; bottom: 18px; z-index: 3; max-width: min(350px, calc(100vw - 36px)); padding: 12px 16px; border-radius: 14px; background: #263345; color: white; font-size: 13px; box-shadow: var(--shadow); opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity .2s ease, transform .2s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 760px) {
+      .hero { grid-template-columns: 1fr 120px; }
+      .mascot { width: 112px; font-size: 56px; }
+      .missions { grid-template-columns: 1fr; }
+      .mission { min-height: 0; display: grid; grid-template-columns: 42px 1fr; column-gap: 12px; align-items: center; }
+      .mission-icon { grid-row: span 2; }
+      .mission h3 { margin: 0 0 3px; }
+      .mission-count { top: 17px; right: 17px; }
+      .practice-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .page { width: min(100% - 22px, 1080px); padding-top: 17px; }
+      .topbar { margin-bottom: 15px; }
+      .brand { font-size: 12px; }
+      .score { padding: 8px 10px; font-size: 12px; }
+      .hero { grid-template-columns: 1fr 70px; gap: 8px; padding: 23px 18px; border-radius: 23px; }
+      .mascot { width: 68px; font-size: 38px; }
+      .hero-copy { margin: 10px 0 15px; font-size: 13px; }
+      .tag { padding: 6px 8px; font-size: 10px; }
+      .section-heading { align-items: flex-start; }
+      .section-heading h2 { font-size: 18px; }
+      .word-list { padding-right: 11px; padding-left: 11px; }
+      .word-card { padding: 9px 8px; }
+      .word-hanzi { font-size: 15px; }
+      .panel-head, .quiz-body, .dialogue-content { padding-right: 15px; padding-left: 15px; }
+      .panel-head { padding-top: 17px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <a class="brand" href="../"><span class="brand-mark" aria-hidden="true">🌤️</span><span>返回學習天地</span></a>
+      <div class="score" aria-live="polite"><span class="score-star" aria-hidden="true">★</span><span id="star-count">0</span><span>顆星星</span></div>
+    </header>
+
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">二年級・第一學段口試練習</p>
+        <h1 id="page-title">普通話口試<br>小勇士出發！</h1>
+        <p class="hero-copy">每天練一點點：先讀詞語，再勇敢地用完整句子回答。準備好了嗎？</p>
+        <div class="hero-tags" aria-label="本次練習內容">
+          <span class="tag">📖 詞語朗讀</span>
+          <span class="tag">💬 完整句子</span>
+          <span class="tag">⏱️ 慢慢說，不怕錯</span>
+        </div>
+      </div>
+      <div class="mascot" role="img" aria-label="可愛的小熊">🐻</div>
+    </section>
+
+    <section aria-labelledby="missions-title">
+      <div class="section-heading">
+        <div><h2 id="missions-title">今天的練習任務</h2><p>完成每一關，收集勇氣星星！</p></div>
+        <span class="subject-label">科目：普通話</span>
+      </div>
+      <div class="missions">
+        <article class="mission">
+          <span class="mission-icon" aria-hidden="true">🗣️</span><span class="mission-count">第 1 關</span>
+          <h3>詞語朗讀</h3><p>聽一聽、讀一讀，練習 10 個考試詞語。</p>
+        </article>
+        <article class="mission">
+          <span class="mission-icon" aria-hidden="true">✨</span><span class="mission-count">第 2 關</span>
+          <h3>認詞小挑戰</h3><p>看拼音和意思，選出正確的詞語。</p>
+        </article>
+        <article class="mission">
+          <span class="mission-icon" aria-hidden="true">💬</span><span class="mission-count">第 3 關</span>
+          <h3>完整句子回答</h3><p>聽清楚問題，試著說出完整的答案。</p>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="practice-title">
+      <div class="section-heading">
+        <div><h2 id="practice-title">開始練習</h2><p>按喇叭可以聽普通話發音。</p></div>
+      </div>
+      <div class="practice-grid">
+        <section class="panel" aria-labelledby="words-title">
+          <div class="panel-head">
+            <div><h2 id="words-title">📖 詞語朗讀</h2><p>點選詞語，再跟著讀一次。</p></div>
+            <span class="small-count">10 個詞語</span>
+          </div>
+          <div class="word-list" id="word-list"></div>
+          <div class="word-tools">
+            <span id="word-status" aria-live="polite">選一個詞語開始練習吧！</span>
+            <button class="button secondary" id="read-all" type="button">🔊 聽全部</button>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="quiz-title">
+          <div class="panel-head">
+            <div><h2 id="quiz-title">✨ 認詞小挑戰</h2><p>答對一題，得到一顆星！</p></div>
+          </div>
+          <div class="quiz-body">
+            <div class="quiz-top"><span class="quiz-label">選出正確詞語</span><span class="small-count" id="quiz-round">第 1 題</span></div>
+            <div class="quiz-prompt" aria-live="polite">
+              <div><p class="quiz-meaning" id="quiz-meaning"></p><p class="quiz-pinyin" id="quiz-pinyin"></p></div>
+            </div>
+            <div class="answers" id="answers"></div>
+            <p class="quiz-feedback" id="quiz-feedback" aria-live="polite">想一想，再選答案！</p>
+            <div class="quiz-next"><button class="button" id="next-question" type="button" hidden>下一題 →</button></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section aria-labelledby="dialogue-title">
+      <div class="section-heading">
+        <div><h2 id="dialogue-title">💬 跟老師練習對話</h2><p>回答時記得說完整句子，不只說一兩個詞。</p></div>
+      </div>
+      <section class="panel dialogue-panel" aria-label="普通話對話練習">
+        <div class="panel-head">
+          <div><h2>輪到你回答囉！</h2><p id="question-number">問題 1 / 4</p></div>
+          <span class="small-count">勇敢開口就很棒</span>
+        </div>
+        <div class="dialogue-content">
+          <div class="question-card">
+            <p class="question-label">老師問</p>
+            <p class="question-text" id="question-text"></p>
+          </div>
+          <p class="sentence-start">可以這樣開始：</p>
+          <div class="answer-box placeholder" id="sample-answer">先自己想一想，再看看參考答案。</div>
+          <div class="dialogue-actions">
+            <button class="button secondary" id="show-answer" type="button">💡 看看參考答案</button>
+            <div style="display:flex;gap:8px">
+              <button class="button secondary" id="say-question" type="button" aria-label="播放問題">🔊</button>
+              <button class="button" id="next-dialogue" type="button">下一個問題 →</button>
+            </div>
+          </div>
+          <p class="dialogue-tip">小提示：回答要有主語和完整意思，例如「我會……」、「秋天……」。參考答案只是一個例子，也可以用自己的話回答。</p>
+        </div>
+      </section>
+    </section>
+    <p class="footer-note">詞語和口試問題根據本學段溫習範圍整理。按喇叭聽讀需要瀏覽器支援中文語音。</p>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const words = [
+      { hanzi: "能幹", pinyin: "néng gàn", meaning: "很有本領，做事做得好" },
+      { hanzi: "往上", pinyin: "wǎng shàng", meaning: "朝著上面的方向" },
+      { hanzi: "交通", pinyin: "jiāo tōng", meaning: "車輛和行人在路上的來往" },
+      { hanzi: "大浪", pinyin: "dà làng", meaning: "很大的海浪" },
+      { hanzi: "怪不得", pinyin: "guài bu de", meaning: "知道原因後，覺得事情不奇怪" },
+      { hanzi: "馬上", pinyin: "mǎ shàng", meaning: "立刻、很快就做" },
+      { hanzi: "中暑", pinyin: "zhòng shǔ", meaning: "天氣太熱，身體不舒服" },
+      { hanzi: "海面", pinyin: "hǎi miàn", meaning: "海的表面" },
+      { hanzi: "正常", pinyin: "zhèng cháng", meaning: "和平常一樣，沒有不對" },
+      { hanzi: "幹活兒", pinyin: "gàn huór", meaning: "做工作、做事情" }
+    ];
+
+    const dialogues = [
+      { question: "你會幫忙做甚麼家務？", answer: "我會幫忙掃地，也會把玩具收拾好。" },
+      { question: "秋天的天氣有甚麼特點？", answer: "秋天天氣比較涼爽，早晚有點冷，天空也很高。" },
+      { question: "今天天氣怎麼樣？", answer: "今天天氣晴朗，陽光很舒服。（請按照今天的天氣回答。）" },
+      { question: "你在家裡會自己做甚麼事？", answer: "我會自己穿衣服、收拾書包，也會整理自己的玩具。" }
+    ];
+
+    const $ = (selector) => document.querySelector(selector);
+    let stars = 0;
+    let questionIndex = 0;
+    let dialogueIndex = 0;
+    let currentWord;
+    let answered = false;
+    let toastTimer;
+
+    function showToast(message) {
+      const toast = $("#toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => toast.classList.remove("show"), 2300);
+    }
+
+    function addStar() {
+      stars += 1;
+      $("#star-count").textContent = String(stars);
+    }
+
+    function speak(text) {
+      if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
+        showToast("這個瀏覽器暫時不能播放語音，請看拼音練習朗讀。");
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      const voices = window.speechSynthesis.getVoices();
+      utterance.voice = voices.find((voice) => /^zh[-_](CN|Hans)(?:[-_]|$)/i.test(voice.lang)) ||
+        voices.find((voice) => /^zh[-_](TW|Hant[-_]TW)(?:[-_]|$)/i.test(voice.lang)) || null;
+      if (voices.length && !utterance.voice) {
+        showToast("找不到普通話語音，請看拼音練習朗讀。");
+        return;
+      }
+      utterance.lang = utterance.voice?.lang || "zh-CN";
+      utterance.rate = 0.78;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function renderWords() {
+      const list = $("#word-list");
+      words.forEach((word) => {
+        const button = document.createElement("button");
+        button.className = "word-card";
+        button.type = "button";
+        button.setAttribute("aria-label", `${word.hanzi}，${word.pinyin}，播放發音`);
+        button.innerHTML = `<span class="word-main"><span class="word-hanzi">${word.hanzi}</span><span class="word-pinyin">${word.pinyin}</span></span><span class="speaker" aria-hidden="true">🔊</span>`;
+        button.addEventListener("click", () => {
+          $("#word-status").textContent = `跟著讀：「${word.hanzi}」`;
+          speak(word.hanzi);
+        });
+        list.append(button);
+      });
+    }
+
+    function shuffle(items) {
+      const result = [...items];
+      for (let i = result.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+      return result;
+    }
+
+    function newQuestion() {
+      answered = false;
+      currentWord = words[Math.floor(Math.random() * words.length)];
+      const distractors = shuffle(words.filter((word) => word !== currentWord)).slice(0, 3);
+      $("#quiz-meaning").textContent = currentWord.meaning;
+      $("#quiz-pinyin").textContent = currentWord.pinyin;
+      $("#quiz-round").textContent = `第 ${questionIndex + 1} 題`;
+      $("#quiz-feedback").textContent = "想一想，再選答案！";
+      $("#next-question").hidden = true;
+      const answers = $("#answers");
+      answers.replaceChildren();
+      shuffle([currentWord, ...distractors]).forEach((word) => {
+        const button = document.createElement("button");
+        button.className = "answer";
+        button.type = "button";
+        button.textContent = word.hanzi;
+        button.addEventListener("click", () => checkAnswer(button, word));
+        answers.append(button);
+      });
+    }
+
+    function checkAnswer(button, choice) {
+      if (answered) return;
+      answered = true;
+      const buttons = [...$("#answers").children];
+      buttons.forEach((item) => {
+        item.disabled = true;
+        if (item.textContent === currentWord.hanzi) item.classList.add("correct");
+      });
+      if (choice === currentWord) {
+        addStar();
+        $("#quiz-feedback").textContent = "答對了！你真棒！⭐";
+        showToast("太棒了，得到一顆勇氣星！");
+      } else {
+        button.classList.add("wrong");
+        $("#quiz-feedback").textContent = `再記一次：「${currentWord.hanzi}」——${currentWord.meaning}。`;
+      }
+      questionIndex += 1;
+      $("#next-question").hidden = false;
+    }
+
+    function showDialogue() {
+      const dialogue = dialogues[dialogueIndex];
+      $("#question-number").textContent = `問題 ${dialogueIndex + 1} / ${dialogues.length}`;
+      $("#question-text").textContent = dialogue.question;
+      $("#sample-answer").textContent = "先自己想一想，再看看參考答案。";
+      $("#sample-answer").classList.add("placeholder");
+      $("#show-answer").textContent = "💡 看看參考答案";
+    }
+
+    $("#read-all").addEventListener("click", () => {
+      speak(words.map((word) => word.hanzi).join("。"));
+      $("#word-status").textContent = "聽清楚每個詞語，再跟著讀一讀。";
+    });
+
+    $("#next-question").addEventListener("click", newQuestion);
+
+    $("#show-answer").addEventListener("click", () => {
+      const answerBox = $("#sample-answer");
+      if (answerBox.classList.contains("placeholder")) {
+        answerBox.textContent = dialogues[dialogueIndex].answer;
+        answerBox.classList.remove("placeholder");
+        $("#show-answer").textContent = "🔊 聽參考答案";
+        addStar();
+      } else {
+        speak(dialogues[dialogueIndex].answer);
+      }
+    });
+
+    $("#say-question").addEventListener("click", () => speak(dialogues[dialogueIndex].question));
+
+    $("#next-dialogue").addEventListener("click", () => {
+      dialogueIndex = (dialogueIndex + 1) % dialogues.length;
+      showDialogue();
+    });
+
+    $("#word-list").addEventListener("click", (event) => {
+      const card = event.target.closest(".word-card");
+      if (!card) return;
+      $("#word-list").querySelectorAll(".word-card").forEach((item) => item.setAttribute("aria-pressed", "false"));
+      card.setAttribute("aria-pressed", "true");
+    });
+
+    renderWords();
+    newQuestion();
+    showDialogue();
+  </script>
+</body>
+</html>

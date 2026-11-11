@@ -44,8 +44,10 @@
     .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
     .section-heading h2 { margin: 0; font-size: clamp(1.7rem, 4vw, 2.35rem); letter-spacing: -.04em; }
     .section-heading p { max-width: 440px; margin: 0; color: var(--muted); line-height: 1.6; }
-    .subjects { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+    .subjects { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
     .subject { min-height: 184px; padding: 22px; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); box-shadow: 0 8px 24px #22244a08; }
+    a.subject { display: block; text-decoration: none; }
+    a.subject:hover, a.subject:focus-visible { border-color: var(--purple); box-shadow: 0 8px 24px #22244a18; }
     .subject-icon { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 15px; background: var(--tint); font-size: 1.55rem; }
     .subject h3 { margin: 17px 0 6px; font-size: 1.08rem; }
     .subject p { margin: 0; color: var(--muted); font-size: .93rem; line-height: 1.5; }
@@ -84,6 +86,7 @@
         <article class="subject" style="--tint:#f0efff"><span class="subject-icon" aria-hidden="true">🀄</span><h3>中文</h3><p>閱讀、詞語和語文練習</p></article>
         <article class="subject" style="--tint:#fff6e6"><span class="subject-icon" aria-hidden="true">🔢</span><h3>Mathematics</h3><p>數字、圖形和解難思維</p></article>
         <article class="subject" style="--tint:#e9f8f2"><span class="subject-icon" aria-hidden="true">🌏</span><h3>General Studies</h3><p>認識我們身邊的世界</p></article>
+        <a class="subject" style="--tint:#fff0e8" href="putonghua/"><span class="subject-icon" aria-hidden="true">🗣️</span><h3>普通話</h3><p>二年級口試：詞語朗讀和對話練習 →</p></a>
       </div>
       <div class="note"><span aria-hidden="true">💡</span><span><strong>準備好開始學習了嗎？</strong>學習天地剛剛起步，更多互動練習活動即將推出，記得再來看看！</span></div>
     </section>
