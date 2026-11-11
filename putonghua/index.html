@@ -26,6 +26,7 @@
     }
 
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
 
     body {
       min-width: 320px;
@@ -226,6 +227,9 @@
     .sentence-start { margin: 15px 0 8px; color: var(--muted); font-size: 12px; }
     .answer-box { min-height: 64px; padding: 12px 13px; border: 1px solid #ece9e1; border-radius: 14px; background: #fff; line-height: 1.7; }
     .answer-box.placeholder { color: #9aa3ae; font-size: 13px; }
+    .sample-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .sample-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .sample-list button { flex: 0 0 auto; }
     .dialogue-actions { flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 13px; }
     .dialogue-tip { margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
 
@@ -361,8 +365,8 @@
             <p class="question-label">老師問</p>
             <p class="question-text" id="question-text"></p>
           </div>
-          <p class="sentence-start">可以這樣開始：</p>
-          <div class="answer-box placeholder" id="sample-answer">先自己想一想，再看看參考答案。</div>
+          <p class="sentence-start">參考答案：</p>
+          <div class="answer-box placeholder" id="sample-answer" aria-live="polite">先自己想一想，再看看參考答案。</div>
           <div class="dialogue-actions">
             <button class="button secondary" id="show-answer" type="button">💡 看看參考答案</button>
             <div style="display:flex;gap:8px">
@@ -393,10 +397,10 @@
     ];
 
     const dialogues = [
-      { question: "你會幫忙做甚麼家務？", answer: "我會幫忙掃地，也會把玩具收拾好。" },
-      { question: "秋天的天氣有甚麼特點？", answer: "秋天天氣比較涼爽，早晚有點冷，天空也很高。" },
-      { question: "今天天氣怎麼樣？", answer: "今天天氣晴朗，陽光很舒服。（請按照今天的天氣回答。）" },
-      { question: "你在家裡會自己做甚麼事？", answer: "我會自己穿衣服、收拾書包，也會整理自己的玩具。" }
+      { question: "你會幫忙做甚麼家務？", answers: ["我會幫忙掃地。", "我會幫忙洗碗。", "我會幫忙收拾玩具。", "我會幫忙掃地，也會把玩具收拾好。"] },
+      { question: "秋天的天氣有甚麼特點？", answers: ["秋天的天氣很涼爽。", "秋天的天氣比較乾燥。", "秋天早晚有點冷。", "秋天天氣比較涼爽，早晚有點冷。"] },
+      { question: "今天天氣怎麼樣？", answers: ["今天天氣很好。", "今天天氣晴朗。", "今天天氣有點冷。", "今天下雨了。"], note: "請按照今天的天氣回答。" },
+      { question: "你在家裡會自己做甚麼事？", answers: ["我會自己穿衣服。", "我會自己收拾書包。", "我會自己刷牙。", "我會自己穿衣服，也會收拾書包。"] }
     ];
 
     const $ = (selector) => document.querySelector(selector);
@@ -407,6 +411,7 @@
     let answered = false;
     let toastTimer;
     let mandarinVoices = [];
+    let userSelectedVoice = "";
 
     function showToast(message) {
       const toast = $("#toast");
@@ -429,7 +434,6 @@
         $("#voice-status").textContent = "這個瀏覽器不支援語音播放，請看拼音練習朗讀。";
         return;
       }
-      const selected = select.value;
       mandarinVoices = window.speechSynthesis.getVoices().filter((voice) => {
         const lang = voice.lang.replace(/_/g, "-").toLowerCase();
         return /^zh-(cn|sg|tw|hans|hant-tw)(?:-|$)/.test(lang) &&
@@ -447,9 +451,18 @@
         return;
       }
       mandarinVoices.forEach((voice) => select.add(new Option(`${voice.name}（${voice.lang}）`, voice.voiceURI)));
-      if (mandarinVoices.some((voice) => voice.voiceURI === selected)) select.value = selected;
+      const preferred = mandarinVoices.find((voice) =>
+        /google/i.test(`${voice.name} ${voice.voiceURI}`) &&
+        (/^zh[-_](tw|hant[-_]tw)(?:[-_]|$)/i.test(voice.lang) || /國語[（(]台灣[）)]/.test(voice.name)));
+      if (userSelectedVoice && mandarinVoices.some((voice) => voice.voiceURI === userSelectedVoice)) {
+        select.value = userSelectedVoice;
+      } else if (preferred) {
+        select.value = preferred.voiceURI;
+      }
       select.disabled = false;
-      $("#voice-status").textContent = "可選擇裝置上的普通話語音；如果發音不合適，請試試另一個。";
+      $("#voice-status").textContent = preferred
+        ? "預設使用 Google 國語（台灣）；也可以選擇其他普通話語音。"
+        : "Google 國語（台灣）不在可用語音中，已選擇其他普通話語音；也可以自行選擇。";
     }
 
     function speak(text) {
@@ -548,6 +561,7 @@
       $("#sample-answer").textContent = "先自己想一想，再看看參考答案。";
       $("#sample-answer").classList.add("placeholder");
       $("#show-answer").textContent = "💡 看看參考答案";
+      $("#show-answer").hidden = false;
     }
 
     $("#read-all").addEventListener("click", () => {
@@ -557,16 +571,37 @@
 
     $("#next-question").addEventListener("click", newQuestion);
     $("#say-quiz-word").addEventListener("click", () => speak(currentWord.hanzi));
+    $("#voice-select").addEventListener("change", (event) => { userSelectedVoice = event.target.value; });
 
     $("#show-answer").addEventListener("click", () => {
       const answerBox = $("#sample-answer");
       if (answerBox.classList.contains("placeholder")) {
-        answerBox.textContent = dialogues[dialogueIndex].answer;
+        const dialogue = dialogues[dialogueIndex];
+        const list = document.createElement("ul");
+        list.className = "sample-list";
+        dialogue.answers.forEach((answer) => {
+          const item = document.createElement("li");
+          const text = document.createElement("span");
+          text.textContent = answer;
+          const play = document.createElement("button");
+          play.className = "button secondary";
+          play.type = "button";
+          play.textContent = "🔊";
+          play.setAttribute("aria-label", `播放參考答案：${answer}`);
+          play.addEventListener("click", () => speak(answer));
+          item.append(text, play);
+          list.append(item);
+        });
+        answerBox.replaceChildren(list);
+        if (dialogue.note) {
+          const note = document.createElement("p");
+          note.className = "dialogue-tip";
+          note.textContent = dialogue.note;
+          answerBox.append(note);
+        }
         answerBox.classList.remove("placeholder");
-        $("#show-answer").textContent = "🔊 聽參考答案";
+        $("#show-answer").hidden = true;
         addStar();
-      } else {
-        speak(dialogues[dialogueIndex].answer);
       }
     });
 
