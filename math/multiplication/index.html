@@ -68,10 +68,12 @@
     .feedback { min-height: 32px; margin: 18px 0 0; color: var(--muted); font-size: 1.08rem; font-weight: 800; }
     .feedback.good { color: #18764d; }
     .feedback.try-again { color: #a13c50; }
+    .learning-hint { margin: 0 0 12px; color: var(--ink); line-height: 1.65; }
     .next { margin-top: 4px; }
     .result-emoji { margin: 0 0 8px; font-size: 3.5rem; }
     .result-title { margin: 0; font-size: clamp(1.8rem, 6vw, 2.7rem); }
     .result-copy { margin: 12px 0 22px; color: var(--muted); font-size: 1.1rem; line-height: 1.6; }
+    .sticker { display: inline-block; margin: 2px 0 16px; padding: 11px 18px; border: 2px dashed #efb6d2; border-radius: 18px; color: #9c356d; background: #fff3f9; font-weight: 850; }
     .result-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
     .review { margin-top: 18px; }
     .review h2 { margin: 0 0 14px; font-size: 1.25rem; }
@@ -141,7 +143,7 @@
         <button id="start-button" class="primary" type="button" disabled>開始 10 題挑戰 ✨</button>
         <button id="review-button" class="secondary" type="button" disabled aria-expanded="false" aria-controls="review">先溫習乘數表</button>
       </div>
-      <p class="hint">請先選好乘數表，再按「開始挑戰」或先溫習。每題有 4 個答案，答啱會儲 1 分，唔使趕時間！</p>
+      <p class="hint">請先選好乘數表，再按「開始挑戰」或先溫習。每回合會玩晒 1 至 10，完成挑戰就有貼紙！唔使趕時間。</p>
       <div id="review" class="review hidden">
         <h2 id="review-title">2 的乘數表</h2>
         <div id="table-grid" class="table-grid"></div>
@@ -160,14 +162,16 @@
       <div class="progress" role="progressbar" aria-label="挑戰進度" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0">
         <div id="progress-fill" class="progress-fill"></div>
       </div>
-      <h2 id="question" class="question"></h2>
+      <h2 id="question" class="question" tabindex="-1"></h2>
       <p class="question-hint">揀出正確答案！</p>
       <div id="answers" class="answers"></div>
       <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+      <p id="learning-hint" class="learning-hint" aria-live="polite"></p>
       <button id="next-button" class="next hidden" type="button">下一題 →</button>
     </section>
 
     <section id="result" class="panel game hidden" aria-live="polite"></section>
+    <p id="sound-status" class="hint" role="status"></p>
     <footer>每一次練習都值得一個掌聲 👏　｜　慢慢來，記住就係你嘅本領！</footer>
   </main>
   <script>
@@ -186,6 +190,8 @@
     const question = document.querySelector("#question");
     const answers = document.querySelector("#answers");
     const feedback = document.querySelector("#feedback");
+    const learningHint = document.querySelector("#learning-hint");
+    const soundStatus = document.querySelector("#sound-status");
     const nextButton = document.querySelector("#next-button");
     const totalQuestions = 10;
     let table = 2;
@@ -193,35 +199,81 @@
     let score = 0;
     let streak = 0;
     let currentAnswer = 0;
+    let currentMultiplier = 0;
+    let multipliers = [];
     let answered = false;
     let soundEnabled = true;
     let audioContext = null;
+    let masterVolume = null;
+    let soundRequest = 0;
 
-    function playFeedback(correct) {
+    function disableSound() {
+      soundEnabled = false;
+      soundRequest += 1;
+      soundToggle.disabled = true;
+      soundToggle.setAttribute("aria-pressed", "false");
+      soundToggle.textContent = "🔇 音效未能播放";
+      soundStatus.textContent = "音效未能播放，仍然可以繼續玩。";
+    }
+
+    function playFeedback(kind) {
       if (!soundEnabled) return;
       const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
       if (!AudioContextConstructor) {
-        soundToggle.disabled = true;
-        soundToggle.textContent = "🔇 此裝置不支援音效";
+        disableSound();
         return;
       }
-      if (!audioContext) audioContext = new AudioContextConstructor();
-      if (audioContext.state === "suspended") audioContext.resume();
-      const notes = correct ? [659.25, 783.99, 987.77] : [293.66, 220];
-      notes.forEach((frequency, index) => {
-        const oscillator = audioContext.createOscillator();
-        const volume = audioContext.createGain();
-        const startAt = audioContext.currentTime + index * 0.12;
-        oscillator.type = "sine";
-        oscillator.frequency.setValueAtTime(frequency, startAt);
-        volume.gain.setValueAtTime(0.0001, startAt);
-        volume.gain.exponentialRampToValueAtTime(correct ? 0.14 : 0.1, startAt + 0.02);
-        volume.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.18);
-        oscillator.connect(volume);
-        volume.connect(audioContext.destination);
-        oscillator.start(startAt);
-        oscillator.stop(startAt + 0.2);
-      });
+      const request = ++soundRequest;
+      try {
+        if (!audioContext) {
+          audioContext = new AudioContextConstructor();
+          masterVolume = audioContext.createGain();
+          masterVolume.gain.setValueAtTime(0.12, audioContext.currentTime);
+          masterVolume.connect(audioContext.destination);
+        }
+        const playNotes = () => {
+          if (!soundEnabled || request !== soundRequest) return;
+          try {
+            const melodies = {
+              correct: [523.25, 659.25, 783.99],
+              streak: [659.25, 783.99, 987.77, 1046.5],
+              wrong: [392, 349.23],
+              finish: [523.25, 659.25, 783.99, 1046.5, 987.77, 1046.5],
+            };
+            const notes = melodies[kind];
+            notes.forEach((frequency, index) => {
+              const startAt = audioContext.currentTime + index * 0.105;
+              [1, 2].forEach((harmonic) => {
+                const oscillator = audioContext.createOscillator();
+                const volume = audioContext.createGain();
+                oscillator.type = harmonic === 1 ? "triangle" : "sine";
+                oscillator.frequency.setValueAtTime(frequency * harmonic, startAt);
+                volume.gain.setValueAtTime(0.0001, startAt);
+                volume.gain.exponentialRampToValueAtTime(harmonic === 1 ? 0.55 : 0.12, startAt + 0.01);
+                volume.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.2);
+                oscillator.connect(volume);
+                volume.connect(masterVolume);
+                oscillator.start(startAt);
+                oscillator.stop(startAt + 0.21);
+              });
+            });
+          } catch (error) {
+            console.error("Unable to play quiz sound:", error);
+            disableSound();
+          }
+        };
+        if (audioContext.state === "suspended") {
+          audioContext.resume().then(playNotes).catch((error) => {
+            console.error("Unable to resume quiz audio:", error);
+            disableSound();
+          });
+        } else {
+          playNotes();
+        }
+      } catch (error) {
+        console.error("Unable to start quiz audio:", error);
+        disableSound();
+      }
     }
 
     function renderTable() {
@@ -261,13 +313,14 @@
     function showQuestion() {
       questionNumber += 1;
       answered = false;
-      const multiplier = Math.floor(Math.random() * 10) + 1;
-      currentAnswer = table * multiplier;
+      currentMultiplier = multipliers[questionNumber - 1];
+      currentAnswer = table * currentMultiplier;
       questionCount.textContent = `第 ${questionNumber} / ${totalQuestions} 題`;
-      question.textContent = `${table} × ${multiplier} = ?`;
+      question.textContent = `${table} × ${currentMultiplier} = ?`;
       progress.setAttribute("aria-valuenow", questionNumber - 1);
       progressFill.style.width = `${((questionNumber - 1) / totalQuestions) * 100}%`;
       feedback.textContent = "";
+      learningHint.textContent = "";
       feedback.className = "feedback";
       nextButton.classList.add("hidden");
       answers.replaceChildren(...makeChoices(currentAnswer).map((value, index) => {
@@ -279,22 +332,25 @@
         button.addEventListener("click", () => checkAnswer(value));
         return button;
       }));
+      question.focus();
     }
 
     function checkAnswer(value) {
       if (answered) return;
       answered = true;
       const correct = value === currentAnswer;
-      playFeedback(correct);
       if (correct) {
         score += 1;
         streak += 1;
+        playFeedback(streak >= 3 ? "streak" : "correct");
         feedback.textContent = streak > 1 ? `答啱！好犀利，已經連勝 ${streak} 題！🎉` : "答啱啦！好叻呀！🎉";
         feedback.className = "feedback good";
       } else {
         streak = 0;
+        playFeedback("wrong");
         feedback.textContent = `差少少！正確答案係 ${currentAnswer}，記住下次再試！💪`;
         feedback.className = "feedback try-again";
+        learningHint.textContent = `小貼士：${table} × ${currentMultiplier} = ${Array(currentMultiplier).fill(table).join(" + ")} = ${currentAnswer}`;
       }
       updateScore();
       progress.setAttribute("aria-valuenow", questionNumber);
@@ -313,12 +369,14 @@
     function finishGame() {
       game.classList.add("hidden");
       result.classList.remove("hidden");
+      playFeedback("finish");
       const stars = score >= 9 ? "🌟🌟🌟" : score >= 6 ? "🌟🌟" : "🌟";
       const cheer = score === totalQuestions ? "全對！你係乘數表小天才！" : score >= 7 ? "做得好好！繼續保持！" : "練習令你愈來愈叻，再玩一次啦！";
       result.innerHTML = `
         <p class="result-emoji" aria-hidden="true">${stars}</p>
         <h2 class="result-title">挑戰完成！</h2>
         <p class="result-copy">${cheer}<br>今次答啱 <strong>${score} / ${totalQuestions}</strong> 題，儲到 ${score} 分！</p>
+        <p class="sticker">🐰 努力練習貼紙・送畀你！</p>
         <div class="result-actions">
           <button id="play-again" class="primary" type="button">再玩一次 🎶</button>
           <button id="choose-table" class="secondary" type="button">揀另一個乘數表</button>
@@ -341,6 +399,7 @@
       questionNumber = 0;
       score = 0;
       streak = 0;
+      multipliers = shuffled(Array.from({ length: totalQuestions }, (_, index) => index + 1));
       updateScore();
       setup.classList.add("hidden");
       result.classList.add("hidden");
@@ -368,6 +427,8 @@
     });
     soundToggle.addEventListener("click", () => {
       soundEnabled = !soundEnabled;
+      soundRequest += 1;
+      if (masterVolume) masterVolume.gain.setValueAtTime(soundEnabled ? 0.12 : 0, audioContext.currentTime);
       soundToggle.setAttribute("aria-pressed", String(soundEnabled));
       soundToggle.textContent = soundEnabled ? "🔊 音效開" : "🔇 音效關";
     });

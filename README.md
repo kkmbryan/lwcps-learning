@@ -2,3 +2,5 @@
 Interactive learning hub and exam-preparation games for LWCPS students.
 
 - [二年級乘數 Melody 節拍挑戰](https://kkmbryan.github.io/lwcps-learning/math/multiplication/)
+  - 每回合隨機排列 1 至 10，完成即可獲得努力貼紙；答錯時有加法小提示。
+  - 答題、連勝及完成挑戰都有音效，可在挑戰中關閉。
