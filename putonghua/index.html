@@ -39,9 +39,9 @@
         var(--cream);
     }
 
-    button, select { font: inherit; }
+    button { font: inherit; }
     button:focus-visible { outline: 3px solid #78a5e5; outline-offset: 3px; }
-    a:focus-visible, select:focus-visible { outline: 3px solid #78a5e5; outline-offset: 3px; }
+    a:focus-visible { outline: 3px solid #78a5e5; outline-offset: 3px; }
 
     .page { width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 52px; }
 
@@ -190,8 +190,7 @@
     .button.secondary { border: 1px solid #e8e4de; background: #fff; color: var(--ink); }
     .button.secondary:hover { background: #faf8f4; }
     .voice-settings { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; padding: 12px 15px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
-    .voice-settings label { font-size: 13px; font-weight: 800; }
-    .voice-settings select { max-width: 100%; padding: 7px; border: 1px solid #ddd8cf; border-radius: 9px; color: var(--ink); background: white; }
+    .voice-settings strong { font-size: 13px; font-weight: 800; }
     .voice-status { flex-basis: 100%; color: var(--muted); font-size: 12px; line-height: 1.5; }
 
     .quiz-body { padding: 1px 21px 20px; }
@@ -223,6 +222,8 @@
     .dialogue-content { padding: 0 21px 20px; }
     .question-card { padding: 16px; border-radius: 17px; background: #f4f9f4; }
     .question-label { margin: 0 0 7px; color: var(--green-dark); font-size: 11px; font-weight: 850; }
+    .question-row { display: flex; align-items: center; gap: 12px; }
+    .question-row button { flex: 0 0 auto; }
     .question-text { margin: 0; font-size: 20px; font-weight: 850; line-height: 1.5; }
     .sentence-start { margin: 15px 0 8px; color: var(--muted); font-size: 12px; }
     .answer-box { min-height: 64px; padding: 12px 13px; border: 1px solid #ece9e1; border-radius: 14px; background: #fff; line-height: 1.7; }
@@ -231,6 +232,7 @@
     .sample-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .sample-list button { flex: 0 0 auto; }
     .dialogue-actions { flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 13px; }
+    .dialogue-nav { display: flex; flex-wrap: wrap; gap: 8px; }
     .dialogue-tip { margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
 
     .footer-note { margin: 22px 4px 0; color: #8d96a3; font-size: 11px; line-height: 1.6; text-align: center; }
@@ -316,9 +318,8 @@
         <div><h2 id="practice-title">開始練習</h2><p>按喇叭可以聽普通話發音。</p></div>
       </div>
       <div class="voice-settings">
-        <label for="voice-select">🗣️ 普通話語音</label>
-        <select id="voice-select" disabled><option>正在尋找普通話語音…</option></select>
-        <span class="voice-status" id="voice-status" role="status"></span>
+        <strong>🗣️ 普通話語音：Google 國語（台灣）</strong>
+        <span class="voice-status" id="voice-status" role="status">正在尋找語音…</span>
       </div>
       <div class="practice-grid">
         <section class="panel" aria-labelledby="words-title">
@@ -363,14 +364,17 @@
         <div class="dialogue-content">
           <div class="question-card">
             <p class="question-label">老師問</p>
-            <p class="question-text" id="question-text"></p>
+            <div class="question-row">
+              <p class="question-text" id="question-text"></p>
+              <button class="button secondary" id="say-question" type="button" aria-label="播放問題">🔊</button>
+            </div>
           </div>
           <p class="sentence-start">參考答案：</p>
           <div class="answer-box placeholder" id="sample-answer" aria-live="polite">先自己想一想，再看看參考答案。</div>
           <div class="dialogue-actions">
             <button class="button secondary" id="show-answer" type="button">💡 看看參考答案</button>
-            <div style="display:flex;gap:8px">
-              <button class="button secondary" id="say-question" type="button" aria-label="播放問題">🔊</button>
+            <div class="dialogue-nav">
+              <button class="button secondary" id="previous-dialogue" type="button">← 上一個問題</button>
               <button class="button" id="next-dialogue" type="button">下一個問題 →</button>
             </div>
           </div>
@@ -378,7 +382,7 @@
         </div>
       </section>
     </section>
-    <p class="footer-note">詞語和口試問題根據本學段溫習範圍整理。語音由瀏覽器和裝置提供；如沒有普通話語音，請到裝置設定安裝中文（普通話）語音。</p>
+    <p class="footer-note">詞語和口試問題根據本學段溫習範圍整理。語音由瀏覽器和裝置提供，需要支援 Google 國語（台灣）。</p>
   </main>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -410,8 +414,7 @@
     let currentWord;
     let answered = false;
     let toastTimer;
-    let mandarinVoices = [];
-    let userSelectedVoice = "";
+    let mandarinVoice = null;
 
     function showToast(message) {
       const toast = $("#toast");
@@ -427,42 +430,20 @@
     }
 
     function updateVoices() {
-      const select = $("#voice-select");
       if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
-        select.replaceChildren(new Option("瀏覽器不支援語音", ""));
-        select.disabled = true;
         $("#voice-status").textContent = "這個瀏覽器不支援語音播放，請看拼音練習朗讀。";
         return;
       }
-      mandarinVoices = window.speechSynthesis.getVoices().filter((voice) => {
+      mandarinVoice = window.speechSynthesis.getVoices().find((voice) => {
         const lang = voice.lang.replace(/_/g, "-").toLowerCase();
-        return /^zh-(cn|sg|tw|hans|hant-tw)(?:-|$)/.test(lang) &&
+        return /^zh-(tw|hant-tw)(?:-|$)/.test(lang) &&
           !/(?:^|-)hk(?:-|$)/.test(lang) &&
+          /google/i.test(`${voice.name} ${voice.voiceURI}`) &&
           !/cantonese|粵語|粤语|廣東話|广东话|yue|hong[ -]?kong/i.test(`${voice.name} ${voice.voiceURI}`);
-      }).sort((a, b) => {
-        const rank = (voice) => /^zh[-_](cn|sg|hans)/i.test(voice.lang) ? 0 : 1;
-        return rank(a) - rank(b);
       });
-      select.replaceChildren();
-      if (!mandarinVoices.length) {
-        select.add(new Option("找不到普通話語音", ""));
-        select.disabled = true;
-        $("#voice-status").textContent = "請到裝置設定安裝中文（普通話）語音，然後重新開啟此頁；不會自動改用廣東話。";
-        return;
-      }
-      mandarinVoices.forEach((voice) => select.add(new Option(`${voice.name}（${voice.lang}）`, voice.voiceURI)));
-      const preferred = mandarinVoices.find((voice) =>
-        /google/i.test(`${voice.name} ${voice.voiceURI}`) &&
-        (/^zh[-_](tw|hant[-_]tw)(?:[-_]|$)/i.test(voice.lang) || /國語[（(]台灣[）)]/.test(voice.name)));
-      if (userSelectedVoice && mandarinVoices.some((voice) => voice.voiceURI === userSelectedVoice)) {
-        select.value = userSelectedVoice;
-      } else if (preferred) {
-        select.value = preferred.voiceURI;
-      }
-      select.disabled = false;
-      $("#voice-status").textContent = preferred
-        ? "預設使用 Google 國語（台灣）；也可以選擇其他普通話語音。"
-        : "Google 國語（台灣）不在可用語音中，已選擇其他普通話語音；也可以自行選擇。";
+      $("#voice-status").textContent = mandarinVoice
+        ? "已準備好播放 Google 國語（台灣）。"
+        : "找不到 Google 國語（台灣），不會改用其他語音。請使用提供此語音的瀏覽器或裝置。";
     }
 
     function speak(text) {
@@ -470,9 +451,9 @@
         showToast("這個瀏覽器暫時不能播放語音，請看拼音練習朗讀。");
         return;
       }
-      const voice = mandarinVoices.find((item) => item.voiceURI === $("#voice-select").value);
+      const voice = mandarinVoice;
       if (!voice) {
-        showToast("找不到普通話語音。請在裝置設定安裝中文（普通話）語音。");
+        showToast("找不到 Google 國語（台灣），請使用提供此語音的瀏覽器或裝置。");
         return;
       }
       window.speechSynthesis.cancel();
@@ -482,7 +463,7 @@
       utterance.rate = 0.78;
       utterance.onerror = (event) => {
         if (event.error !== "interrupted" && event.error !== "canceled") {
-          showToast("語音播放失敗，請嘗試另一個普通話語音或檢查裝置設定。");
+          showToast("Google 國語（台灣）播放失敗，請檢查瀏覽器或裝置設定。");
         }
       };
       window.speechSynthesis.speak(utterance);
@@ -571,8 +552,6 @@
 
     $("#next-question").addEventListener("click", newQuestion);
     $("#say-quiz-word").addEventListener("click", () => speak(currentWord.hanzi));
-    $("#voice-select").addEventListener("change", (event) => { userSelectedVoice = event.target.value; });
-
     $("#show-answer").addEventListener("click", () => {
       const answerBox = $("#sample-answer");
       if (answerBox.classList.contains("placeholder")) {
@@ -606,6 +585,11 @@
     });
 
     $("#say-question").addEventListener("click", () => speak(dialogues[dialogueIndex].question));
+
+    $("#previous-dialogue").addEventListener("click", () => {
+      dialogueIndex = (dialogueIndex - 1 + dialogues.length) % dialogues.length;
+      showDialogue();
+    });
 
     $("#next-dialogue").addEventListener("click", () => {
       dialogueIndex = (dialogueIndex + 1) % dialogues.length;
