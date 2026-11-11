@@ -53,8 +53,10 @@
     .game-top { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 12px; color: var(--muted); font-weight: 800; }
     .score { padding: 8px 13px; border-radius: 999px; color: #a23d77; background: #fff0f7; }
     .game-controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 9px; margin: 0 0 15px; }
-    .sound-toggle, .leave-game { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 13px; border: 1px solid var(--line); border-radius: 13px; color: var(--pink-dark); background: #fff8fc; font-weight: 800; text-decoration: none; }
-    .sound-toggle:hover, .leave-game:hover { background: #ffeaf4; }
+    .sound-toggle, .leave-game, .volume-picker { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 13px; border: 1px solid var(--line); border-radius: 13px; color: var(--pink-dark); background: #fff8fc; font-weight: 800; text-decoration: none; }
+    .sound-toggle:hover, .leave-game:hover, .volume-picker:hover { background: #ffeaf4; }
+    .volume-picker { gap: 8px; }
+    .volume-picker select { min-width: 105px; min-height: 32px; padding: 0 8px; border: 1px solid #efcde0; border-radius: 10px; color: var(--ink); background: #fff; font-size: .92rem; }
     .progress { height: 12px; overflow: hidden; border-radius: 999px; background: #faeaf2; }
     .progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #ff9ac4, #e84f91); transition: width .3s ease; }
     .question { margin: clamp(24px, 5vw, 42px) 0 8px; font-size: clamp(2.6rem, 10vw, 5rem); font-weight: 900; letter-spacing: .02em; }
@@ -68,6 +70,7 @@
     .feedback { min-height: 32px; margin: 18px 0 0; color: var(--muted); font-size: 1.08rem; font-weight: 800; }
     .feedback.good { color: #18764d; }
     .feedback.try-again { color: #a13c50; }
+    .mood { margin: 0; color: #9d4a75; font-size: .95rem; font-weight: 850; }
     .learning-hint { margin: 0 0 12px; color: var(--ink); line-height: 1.65; }
     .next { margin-top: 4px; }
     .result-emoji { margin: 0 0 8px; font-size: 3.5rem; }
@@ -157,7 +160,13 @@
       </div>
       <div class="game-controls">
         <button id="sound-toggle" class="sound-toggle" type="button" aria-pressed="true">🔊 音效開</button>
-        <button id="quit-button" class="sound-toggle" type="button">⏹ 中途退出揀其他挑戰</button>
+        <label class="volume-picker" for="volume-select">🔉 音量
+          <select id="volume-select">
+            <option value="low">細聲</option>
+            <option value="medium" selected>中等</option>
+          </select>
+        </label>
+        <button id="quit-button" class="sound-toggle" type="button">🔄 換挑戰</button>
         <a class="leave-game" href="../../">↩ 返回學習天地</a>
       </div>
       <div class="progress" role="progressbar" aria-label="挑戰進度" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0">
@@ -165,6 +174,7 @@
       </div>
       <h2 id="question" class="question" tabindex="-1"></h2>
       <p class="question-hint">揀出正確答案！</p>
+      <p id="melody-mood" class="mood">🐰 Melody：等你出招！</p>
       <div id="answers" class="answers"></div>
       <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
       <p id="learning-hint" class="learning-hint" aria-live="polite"></p>
@@ -184,6 +194,7 @@
     const reviewButton = document.querySelector("#review-button");
     const startButton = document.querySelector("#start-button");
     const soundToggle = document.querySelector("#sound-toggle");
+    const volumeSelect = document.querySelector("#volume-select");
     const quitButton = document.querySelector("#quit-button");
     const questionCount = document.querySelector("#question-count");
     const scoreDisplay = document.querySelector("#score");
@@ -192,6 +203,7 @@
     const question = document.querySelector("#question");
     const answers = document.querySelector("#answers");
     const feedback = document.querySelector("#feedback");
+    const melodyMood = document.querySelector("#melody-mood");
     const learningHint = document.querySelector("#learning-hint");
     const soundStatus = document.querySelector("#sound-status");
     const nextButton = document.querySelector("#next-button");
@@ -208,6 +220,7 @@
     let audioContext = null;
     let masterVolume = null;
     let soundRequest = 0;
+    let volumeLevel = 0.12;
 
     function disableSound() {
       soundEnabled = false;
@@ -215,7 +228,16 @@
       soundToggle.disabled = true;
       soundToggle.setAttribute("aria-pressed", "false");
       soundToggle.textContent = "🔇 音效未能播放";
+      volumeSelect.disabled = true;
       soundStatus.textContent = "音效未能播放，仍然可以繼續玩。";
+    }
+
+    function setMood(text) {
+      melodyMood.textContent = `🐰 Melody：${text}`;
+    }
+
+    function applyVolume() {
+      if (masterVolume) masterVolume.gain.setValueAtTime(soundEnabled ? volumeLevel : 0, audioContext.currentTime);
     }
 
     function playFeedback(kind) {
@@ -230,7 +252,7 @@
         if (!audioContext) {
           audioContext = new AudioContextConstructor();
           masterVolume = audioContext.createGain();
-          masterVolume.gain.setValueAtTime(0.12, audioContext.currentTime);
+          masterVolume.gain.setValueAtTime(volumeLevel, audioContext.currentTime);
           masterVolume.connect(audioContext.destination);
         }
         const playNotes = () => {
@@ -324,6 +346,7 @@
       feedback.textContent = "";
       learningHint.textContent = "";
       feedback.className = "feedback";
+      setMood("加油！你做得到 ✨");
       nextButton.classList.add("hidden");
       answers.replaceChildren(...makeChoices(currentAnswer).map((value, index) => {
         const button = document.createElement("button");
@@ -347,12 +370,14 @@
         playFeedback(streak >= 3 ? "streak" : "correct");
         feedback.textContent = streak > 1 ? `答啱！好犀利，已經連勝 ${streak} 題！🎉` : "答啱啦！好叻呀！🎉";
         feedback.className = "feedback good";
+        setMood(streak >= 3 ? `連勝 ${streak} 題！超級勁 🤩` : "你答得啱，繼續呀 😊");
       } else {
         streak = 0;
         playFeedback("wrong");
         feedback.textContent = `差少少！正確答案係 ${currentAnswer}，記住下次再試！💪`;
         feedback.className = "feedback try-again";
         learningHint.textContent = `小貼士：${table} × ${currentMultiplier} = ${Array(currentMultiplier).fill(table).join(" + ")} = ${currentAnswer}`;
+        setMood("唔緊要，我哋一齊再試過 💪");
       }
       updateScore();
       progress.setAttribute("aria-valuenow", questionNumber);
@@ -372,6 +397,7 @@
       game.classList.add("hidden");
       result.classList.remove("hidden");
       playFeedback("finish");
+      setMood("完成挑戰！你真係好叻 🥳");
       const stars = score >= 9 ? "🌟🌟🌟" : score >= 6 ? "🌟🌟" : "🌟";
       const cheer = score === totalQuestions ? "全對！你係乘數表小天才！" : score >= 7 ? "做得好好！繼續保持！" : "練習令你愈來愈叻，再玩一次啦！";
       result.innerHTML = `
@@ -406,6 +432,7 @@
       setup.classList.add("hidden");
       result.classList.add("hidden");
       game.classList.remove("hidden");
+      soundStatus.textContent = "";
       showQuestion();
     }
 
@@ -437,9 +464,14 @@
     soundToggle.addEventListener("click", () => {
       soundEnabled = !soundEnabled;
       soundRequest += 1;
-      if (masterVolume) masterVolume.gain.setValueAtTime(soundEnabled ? 0.12 : 0, audioContext.currentTime);
+      applyVolume();
       soundToggle.setAttribute("aria-pressed", String(soundEnabled));
       soundToggle.textContent = soundEnabled ? "🔊 音效開" : "🔇 音效關";
+    });
+    volumeSelect.addEventListener("change", () => {
+      volumeLevel = volumeSelect.value === "low" ? 0.08 : 0.12;
+      applyVolume();
+      soundStatus.textContent = volumeSelect.value === "low" ? "已設定為細聲音量。🔉" : "已設定為中等音量。🔊";
     });
   </script>
 </body>
