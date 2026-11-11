@@ -69,6 +69,9 @@
     .feedback.good { color: #18764d; }
     .feedback.try-again { color: #a13c50; }
     .learning-hint { margin: 0 0 12px; color: var(--ink); line-height: 1.65; }
+    .quit-row { margin-top: 8px; display: flex; justify-content: center; }
+    .quit-main { min-height: 46px; padding: 0 16px; border: 0; border-radius: 13px; color: #fff; background: #ce3f7e; font-size: .94rem; font-weight: 850; }
+    .quit-main:hover { background: #b4316a; }
     .next { margin-top: 4px; }
     .result-emoji { margin: 0 0 8px; font-size: 3.5rem; }
     .result-title { margin: 0; font-size: clamp(1.8rem, 6vw, 2.7rem); }
@@ -157,7 +160,7 @@
       </div>
       <div class="game-controls">
         <button id="sound-toggle" class="sound-toggle" type="button" aria-pressed="true">🔊 音效開</button>
-        <button id="quit-button" class="sound-toggle" type="button">🎯 揀另一個挑戰</button>
+        <button id="quit-button" class="sound-toggle" type="button">⏹ 中途退出揀其他挑戰</button>
         <a class="leave-game" href="../../">↩ 返回學習天地</a>
       </div>
       <div class="progress" role="progressbar" aria-label="挑戰進度" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0">
@@ -169,6 +172,7 @@
       <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
       <p id="learning-hint" class="learning-hint" aria-live="polite"></p>
       <button id="next-button" class="next hidden" type="button">下一題 →</button>
+      <div class="quit-row"><button id="quit-button-bottom" class="quit-main" type="button">⏹ 中途退出揀其他挑戰</button></div>
     </section>
 
     <section id="result" class="panel game hidden" aria-live="polite"></section>
@@ -185,6 +189,7 @@
     const startButton = document.querySelector("#start-button");
     const soundToggle = document.querySelector("#sound-toggle");
     const quitButton = document.querySelector("#quit-button");
+    const quitButtonBottom = document.querySelector("#quit-button-bottom");
     const questionCount = document.querySelector("#question-count");
     const scoreDisplay = document.querySelector("#score");
     const progress = document.querySelector(".progress");
@@ -409,6 +414,12 @@
       showQuestion();
     }
 
+    function quitChallenge() {
+      game.classList.add("hidden");
+      setup.classList.remove("hidden");
+      tableSelect.focus();
+    }
+
     startButton.addEventListener("click", startGame);
     document.querySelector("#next-button").addEventListener("click", () => {
       if (questionNumber === totalQuestions) finishGame();
@@ -427,11 +438,8 @@
       reviewButton.disabled = !hasSelection;
       if (!review.classList.contains("hidden")) renderTable();
     });
-    quitButton.addEventListener("click", () => {
-      game.classList.add("hidden");
-      setup.classList.remove("hidden");
-      tableSelect.focus();
-    });
+    quitButton.addEventListener("click", quitChallenge);
+    quitButtonBottom.addEventListener("click", quitChallenge);
     soundToggle.addEventListener("click", () => {
       soundEnabled = !soundEnabled;
       soundRequest += 1;
