@@ -38,8 +38,9 @@
         var(--cream);
     }
 
-    button { font: inherit; }
+    button, select { font: inherit; }
     button:focus-visible { outline: 3px solid #78a5e5; outline-offset: 3px; }
+    a:focus-visible, select:focus-visible { outline: 3px solid #78a5e5; outline-offset: 3px; }
 
     .page { width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 52px; }
 
@@ -128,6 +129,8 @@
       background: var(--paper);
       box-shadow: 0 6px 20px rgb(73 56 34 / 4%);
       transition: transform .18s ease, box-shadow .18s ease;
+      color: inherit;
+      text-decoration: none;
     }
     .mission:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgb(73 56 34 / 9%); }
     .mission-icon { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 14px; font-size: 21px; }
@@ -185,6 +188,10 @@
     .button:hover { background: var(--orange-dark); transform: translateY(-1px); }
     .button.secondary { border: 1px solid #e8e4de; background: #fff; color: var(--ink); }
     .button.secondary:hover { background: #faf8f4; }
+    .voice-settings { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; padding: 12px 15px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+    .voice-settings label { font-size: 13px; font-weight: 800; }
+    .voice-settings select { max-width: 100%; padding: 7px; border: 1px solid #ddd8cf; border-radius: 9px; color: var(--ink); background: white; }
+    .voice-status { flex-basis: 100%; color: var(--muted); font-size: 12px; line-height: 1.5; }
 
     .quiz-body { padding: 1px 21px 20px; }
     .quiz-top { justify-content: space-between; margin-bottom: 15px; }
@@ -285,24 +292,29 @@
         <span class="subject-label">科目：普通話</span>
       </div>
       <div class="missions">
-        <article class="mission">
+        <a class="mission" href="#words-title">
           <span class="mission-icon" aria-hidden="true">🗣️</span><span class="mission-count">第 1 關</span>
           <h3>詞語朗讀</h3><p>聽一聽、讀一讀，練習 10 個考試詞語。</p>
-        </article>
-        <article class="mission">
+        </a>
+        <a class="mission" href="#quiz-title">
           <span class="mission-icon" aria-hidden="true">✨</span><span class="mission-count">第 2 關</span>
           <h3>認詞小挑戰</h3><p>看拼音和意思，選出正確的詞語。</p>
-        </article>
-        <article class="mission">
+        </a>
+        <a class="mission" href="#dialogue-title">
           <span class="mission-icon" aria-hidden="true">💬</span><span class="mission-count">第 3 關</span>
           <h3>完整句子回答</h3><p>聽清楚問題，試著說出完整的答案。</p>
-        </article>
+        </a>
       </div>
     </section>
 
     <section aria-labelledby="practice-title">
       <div class="section-heading">
         <div><h2 id="practice-title">開始練習</h2><p>按喇叭可以聽普通話發音。</p></div>
+      </div>
+      <div class="voice-settings">
+        <label for="voice-select">🗣️ 普通話語音</label>
+        <select id="voice-select" disabled><option>正在尋找普通話語音…</option></select>
+        <span class="voice-status" id="voice-status" role="status"></span>
       </div>
       <div class="practice-grid">
         <section class="panel" aria-labelledby="words-title">
@@ -326,6 +338,7 @@
             <div class="quiz-prompt" aria-live="polite">
               <div><p class="quiz-meaning" id="quiz-meaning"></p><p class="quiz-pinyin" id="quiz-pinyin"></p></div>
             </div>
+            <button class="button secondary" id="say-quiz-word" type="button" style="margin-top: 10px">🔊 聽詞語</button>
             <div class="answers" id="answers"></div>
             <p class="quiz-feedback" id="quiz-feedback" aria-live="polite">想一想，再選答案！</p>
             <div class="quiz-next"><button class="button" id="next-question" type="button" hidden>下一題 →</button></div>
@@ -361,7 +374,7 @@
         </div>
       </section>
     </section>
-    <p class="footer-note">詞語和口試問題根據本學段溫習範圍整理。按喇叭聽讀需要瀏覽器支援中文語音。</p>
+    <p class="footer-note">詞語和口試問題根據本學段溫習範圍整理。語音由瀏覽器和裝置提供；如沒有普通話語音，請到裝置設定安裝中文（普通話）語音。</p>
   </main>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -393,6 +406,7 @@
     let currentWord;
     let answered = false;
     let toastTimer;
+    let mandarinVoices = [];
 
     function showToast(message) {
       const toast = $("#toast");
@@ -407,22 +421,57 @@
       $("#star-count").textContent = String(stars);
     }
 
+    function updateVoices() {
+      const select = $("#voice-select");
+      if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
+        select.replaceChildren(new Option("瀏覽器不支援語音", ""));
+        select.disabled = true;
+        $("#voice-status").textContent = "這個瀏覽器不支援語音播放，請看拼音練習朗讀。";
+        return;
+      }
+      const selected = select.value;
+      mandarinVoices = window.speechSynthesis.getVoices().filter((voice) => {
+        const lang = voice.lang.replace(/_/g, "-").toLowerCase();
+        return /^zh-(cn|sg|tw|hans|hant-tw)(?:-|$)/.test(lang) &&
+          !/(?:^|-)hk(?:-|$)/.test(lang) &&
+          !/cantonese|粵語|粤语|廣東話|广东话|yue|hong[ -]?kong/i.test(`${voice.name} ${voice.voiceURI}`);
+      }).sort((a, b) => {
+        const rank = (voice) => /^zh[-_](cn|sg|hans)/i.test(voice.lang) ? 0 : 1;
+        return rank(a) - rank(b);
+      });
+      select.replaceChildren();
+      if (!mandarinVoices.length) {
+        select.add(new Option("找不到普通話語音", ""));
+        select.disabled = true;
+        $("#voice-status").textContent = "請到裝置設定安裝中文（普通話）語音，然後重新開啟此頁；不會自動改用廣東話。";
+        return;
+      }
+      mandarinVoices.forEach((voice) => select.add(new Option(`${voice.name}（${voice.lang}）`, voice.voiceURI)));
+      if (mandarinVoices.some((voice) => voice.voiceURI === selected)) select.value = selected;
+      select.disabled = false;
+      $("#voice-status").textContent = "可選擇裝置上的普通話語音；如果發音不合適，請試試另一個。";
+    }
+
     function speak(text) {
       if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
         showToast("這個瀏覽器暫時不能播放語音，請看拼音練習朗讀。");
         return;
       }
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      const voices = window.speechSynthesis.getVoices();
-      utterance.voice = voices.find((voice) => /^zh[-_](CN|Hans)(?:[-_]|$)/i.test(voice.lang)) ||
-        voices.find((voice) => /^zh[-_](TW|Hant[-_]TW)(?:[-_]|$)/i.test(voice.lang)) || null;
-      if (voices.length && !utterance.voice) {
-        showToast("找不到普通話語音，請看拼音練習朗讀。");
+      const voice = mandarinVoices.find((item) => item.voiceURI === $("#voice-select").value);
+      if (!voice) {
+        showToast("找不到普通話語音。請在裝置設定安裝中文（普通話）語音。");
         return;
       }
-      utterance.lang = utterance.voice?.lang || "zh-CN";
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.voice = voice;
+      utterance.lang = voice.lang;
       utterance.rate = 0.78;
+      utterance.onerror = (event) => {
+        if (event.error !== "interrupted" && event.error !== "canceled") {
+          showToast("語音播放失敗，請嘗試另一個普通話語音或檢查裝置設定。");
+        }
+      };
       window.speechSynthesis.speak(utterance);
     }
 
@@ -507,6 +556,7 @@
     });
 
     $("#next-question").addEventListener("click", newQuestion);
+    $("#say-quiz-word").addEventListener("click", () => speak(currentWord.hanzi));
 
     $("#show-answer").addEventListener("click", () => {
       const answerBox = $("#sample-answer");
@@ -534,6 +584,8 @@
       card.setAttribute("aria-pressed", "true");
     });
 
+    if ("speechSynthesis" in window) window.speechSynthesis.addEventListener("voiceschanged", updateVoices);
+    updateVoices();
     renderWords();
     newQuestion();
     showDialogue();
