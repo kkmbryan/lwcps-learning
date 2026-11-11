@@ -157,6 +157,7 @@
       </div>
       <div class="game-controls">
         <button id="sound-toggle" class="sound-toggle" type="button" aria-pressed="true">🔊 音效開</button>
+        <button id="quit-button" class="sound-toggle" type="button">🎯 揀另一個挑戰</button>
         <a class="leave-game" href="../../">↩ 返回學習天地</a>
       </div>
       <div class="progress" role="progressbar" aria-label="挑戰進度" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0">
@@ -183,6 +184,7 @@
     const reviewButton = document.querySelector("#review-button");
     const startButton = document.querySelector("#start-button");
     const soundToggle = document.querySelector("#sound-toggle");
+    const quitButton = document.querySelector("#quit-button");
     const questionCount = document.querySelector("#question-count");
     const scoreDisplay = document.querySelector("#score");
     const progress = document.querySelector(".progress");
@@ -424,6 +426,11 @@
       startButton.disabled = !hasSelection;
       reviewButton.disabled = !hasSelection;
       if (!review.classList.contains("hidden")) renderTable();
+    });
+    quitButton.addEventListener("click", () => {
+      game.classList.add("hidden");
+      setup.classList.remove("hidden");
+      tableSelect.focus();
     });
     soundToggle.addEventListener("click", () => {
       soundEnabled = !soundEnabled;

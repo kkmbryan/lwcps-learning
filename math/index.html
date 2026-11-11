@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7ff">
+  <meta name="description" content="LWCPS 學習天地數學科：乘數表遊戲與數學練習活動。">
+  <title>Mathematics｜LWCPS 學習天地</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202447;
+      --muted: #656b89;
+      --purple: #5b54d6;
+      --purple-dark: #4039b3;
+      --line: #e7e8f4;
+      --surface: #fff;
+      --background: #f7f8ff;
+      font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; color: var(--ink); background: var(--background); }
+    a { color: inherit; }
+    a:focus-visible { outline: 3px solid #8e51c7; outline-offset: 3px; }
+    .wrap { width: min(1120px, calc(100% - 40px)); margin-inline: auto; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-block: 22px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; letter-spacing: -.03em; }
+    .brand-mark { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 14px; background: #e8e7ff; font-size: 22px; }
+    .nav-link { color: var(--muted); font-size: .95rem; font-weight: 700; text-decoration: none; }
+    .nav-link:hover { color: var(--purple); }
+    main { padding-block: 8px 40px; }
+    .hero { padding: clamp(26px, 5vw, 46px); border-radius: 28px; color: #fff; background: linear-gradient(125deg, #4540b8 0%, #6961e8 58%, #8975ee 100%); box-shadow: 0 22px 55px #4e48b729; }
+    .eyebrow { margin: 0 0 10px; color: #e4e1ff; font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2rem, 5vw, 3.2rem); letter-spacing: -.045em; }
+    .hero p:not(.eyebrow) { max-width: 560px; margin: 14px 0 0; color: #f0efff; font-size: 1.05rem; line-height: 1.65; }
+    section { padding-block: 40px 10px; }
+    .section-heading h2 { margin: 0 0 6px; font-size: clamp(1.5rem, 4vw, 2.1rem); letter-spacing: -.04em; }
+    .section-heading p { margin: 0 0 22px; color: var(--muted); }
+    .games { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .game { display: flex; align-items: flex-start; gap: 16px; min-height: 120px; padding: 20px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); text-decoration: none; box-shadow: 0 8px 24px #22244a08; }
+    .game:hover { border-color: var(--purple); box-shadow: 0 8px 24px #22244a18; }
+    .game-icon { display: grid; flex: none; width: 52px; height: 52px; place-items: center; border-radius: 15px; background: var(--tint); font-size: 1.6rem; }
+    .game h3 { margin: 2px 0 6px; font-size: 1.08rem; }
+    .game p { margin: 0; color: var(--muted); font-size: .93rem; line-height: 1.5; }
+    .game .meta { display: inline-block; margin-top: 8px; color: var(--purple-dark); font-size: .82rem; font-weight: 800; }
+    .coming { opacity: .65; }
+    .coming .meta { color: var(--muted); }
+    footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 56px; padding-block: 22px 30px; border-top: 1px solid var(--line); color: var(--muted); font-size: .88rem; }
+    @media (max-width: 480px) { .wrap { width: min(100% - 28px, 1120px); } footer { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <header class="wrap topbar">
+    <a class="brand" href="../" aria-label="LWCPS 學習天地首頁"><span class="brand-mark" aria-hidden="true">🎓</span><span>LWCPS Learning</span></a>
+    <a class="nav-link" href="../">← 返回學習天地</a>
+  </header>
+  <main class="wrap">
+    <div class="hero">
+      <p class="eyebrow">Mathematics・數學科</p>
+      <h1>數學遊戲與練習</h1>
+      <p>選擇一個遊戲開始練習。數學科會陸續加入更多遊戲和活動。</p>
+    </div>
+    <section aria-labelledby="games-title">
+      <div class="section-heading">
+        <h2 id="games-title">遊戲一覽</h2>
+        <p>每個遊戲都可以獨立遊玩，慢慢練習就得！</p>
+      </div>
+      <div class="games">
+        <a class="game" style="--tint:#fff0f8" href="multiplication/">
+          <span class="game-icon" aria-hidden="true">🎵</span>
+          <span>
+            <h3>乘數 Melody・節拍挑戰</h3>
+            <p>二年級 2 至 9 乘數表：10 題無限時挑戰，答啱有音效，完成送努力貼紙。</p>
+            <span class="meta">二年級・乘數表 →</span>
+          </span>
+        </a>
+        <article class="game coming" style="--tint:#f0efff">
+          <span class="game-icon" aria-hidden="true">➕</span>
+          <span>
+            <h3>更多數學遊戲</h3>
+            <p>加減、圖形和解難遊戲正在準備中，記得再來看看！</p>
+            <span class="meta">即將推出</span>
+          </span>
+        </article>
+      </div>
+    </section>
+  </main>
+  <footer class="wrap"><span>為 LWCPS 好奇又愛學習的同學而設</span><span>持續練習，每天進步。🌱</span></footer>
+</body>
+</html>
